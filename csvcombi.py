@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import csv
+import statistics as stats
 """
 Takes comma-separated variable files and combines entries in the files according to user-selected parameters.
 """
@@ -61,9 +62,22 @@ for d in dataEntries:
     dataToStore = [d.dataID]
     #Iterate through all data assocaited with this data entry, and apply functions to columns as necessary to condense the data
     for dList in range(len(d.dataLists)):
-        #If the data in this column should be averaged, find the average value and append this to this data entry
         if colFunctions[dList][1] == 'AVERAGE':
-            dataToStore.append(sum(d.dataLists[dList])/len(d.dataLists[dList]))
+            dataToStore.append(stats.mean(d.dataLists[dList]))
+        elif colFunctions[dList][1] == 'MAX':
+            dataToStore.append(max(d.dataList[dList]))
+        elif colFunctions[dList][1] == 'MEDIAN':
+            dataToStore.append(stats.median(d.dataList[dList]))
+        elif colFunctions[dList][1] == 'MIN':
+            dataToStore.append(min(d.dataList[dList]))
+        elif colFunctions[dList][1] == 'MODE':
+            dataToStore.append(stats.mode(d.dataList[dList]))
+        elif colFunctions[dList][1] == 'STDEV':
+            dataToStore.append(stats.stdev(d.dataList[dList]))
+        elif colFunctions[dList][1] == 'SUM':
+            dataToStore.append(sum(d.dataList[dList]))
+        elif colFunctions[dList][1] == 'VAR':
+            dataToStore.append(stats.variance(d.dataList[dList]))
     #Add this condensed data entry to the list of data to write
     dataToWrite.append(dataToStore)
     
