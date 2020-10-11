@@ -3,6 +3,8 @@ import csv
 """
 Takes comma-separated variable files and combines entries in the files according to user-selected parameters.
 """
+#This corresponds to the filename of the input CSV file
+inputName = 'input.csv'
 #This corresponds to the column containing the ID values by which data entries can be combined
 combineColumn = 0
 #Column functions should be placed in this list
@@ -29,7 +31,7 @@ class DataEntry:
 dataEntries = []
 
 #Open the input CSV file
-with open('input.csv') as csvFile:
+with open(inputName) as csvFile:
     csvReader = csv.reader(csvFile, delimiter = ',')
     lineCount = 0
     
