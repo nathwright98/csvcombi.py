@@ -5,10 +5,6 @@ import csv
 ENTER DESIRED COLUMN FUNCTIONS IN THIS LIST
 """
 colFunctions = [
-    [1, 'AVERAGE'],
-    [2, 'AVERAGE'],
-    [3, 'AVERAGE'],
-    [5, 'AVERAGE']
     ]
 
 class DataEntry:
