@@ -23,7 +23,7 @@ colFunctions = [
     ]
 ```
 
-####List of column functions:####
+#### List of column functions:
 - MAX - Stores the maximum value
 - MEAN - Stores the mean (average) value of all the values
 - MEDIAN - Stores the median value
