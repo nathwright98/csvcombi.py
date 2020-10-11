@@ -17,8 +17,18 @@ EXAMPLE:
 If you wish to reduce the data in the 4th, 5th, and 7th columns, and wish to do so by finding the average value of data in these columns, you would use the following syntax:
 ```
 colFunctions = [
-    [3, 'AVERAGE'],
-    [4, 'AVERAGE'],
-    [6, 'AVERAGE']
+    [3, 'MEAN'],
+    [4, 'MEAN'],
+    [6, 'MEAN']
     ]
 ```
+
+####List of column functions:####
+- MAX - Stores the maximum value
+- MEAN - Stores the mean (average) value of all the values
+- MEDIAN - Stores the median value
+- MIN - Stores the minimum value
+- MODE - Stores the most common value
+- STDEV - Stores the standard deviation
+- SUM - Stores the sum
+- VAR - Stores the variance
