@@ -62,10 +62,10 @@ for d in dataEntries:
     dataToStore = [d.dataID]
     #Iterate through all data assocaited with this data entry, and apply functions to columns as necessary to condense the data
     for dList in range(len(d.dataLists)):
-        if colFunctions[dList][1] == 'AVERAGE':
-            dataToStore.append(stats.mean(d.dataLists[dList]))
-        elif colFunctions[dList][1] == 'MAX':
+        if colFunctions[dList][1] == 'MAX':
             dataToStore.append(max(d.dataList[dList]))
+        elif colFunctions[dList][1] == 'MEAN':
+            dataToStore.append(stats.mean(d.dataLists[dList]))
         elif colFunctions[dList][1] == 'MEDIAN':
             dataToStore.append(stats.median(d.dataList[dList]))
         elif colFunctions[dList][1] == 'MIN':
