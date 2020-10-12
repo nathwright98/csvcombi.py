@@ -23,17 +23,14 @@ import time
 """
 Takes comma-separated variable files and combines entries in the files according to user-selected parameters.
 """
-#This corresponds to the filename of the input CSV file
+#This corresponds to the filename of the input CSV file - this must end in .csv
 inputName = 'input.csv'
 #This corresponds to the column containing the ID values by which data entries can be combined
 combineColumn = 0
 #Column functions should be placed in this list
 colFunctions = [
-    [1, 'MEAN'],
-    [2, 'MEAN'],
-    [3, 'MEAB']
     ]
-#This corresponds to the filename of the output CSV file
+#This corresponds to the filename of the output CSV file - this must end in .csv
 outputName = 'output.csv'
 
 class DataEntry:
@@ -76,6 +73,16 @@ def getCFString(cf):
     else:
         return('Average value calculated for column ' + str(cf[0]) + '. This calculation was performed as a fallback due to an incorrect entry in the column functions list.')
 
+logtext = ''
+
+def createLog():
+    """
+    Creates a log in a txt file.
+    """
+    textFile = open('log.txt', 'w')
+    textFile.write(logtext)
+    textFile.close()
+    
 #Create a list for new data entries
 dataEntries = []
 #Create a counter for entries which could not be parsed
@@ -92,31 +99,37 @@ badFunctionWarning = False
 startTime = time.time()
 
 #Open the input CSV file
-with open(inputName) as csvFile:
-    csvReader = csv.reader(csvFile, delimiter = ',')
-    
-    #Iterate through each row of the CSV file
-    for row in csvReader:
-        #Ignore first line as this corresponds to column titles, otherwise iterate through each row of data
-        if lineCount > 0:
-            #Check that a data entry does not already exist for data with the same ID as this row
-            if not any(data.dataID == row[combineColumn] for data in dataEntries):
-                #Create a new data entry with an ID corresponding to this row
-                dataEntries.append(DataEntry(row[combineColumn], len(colFunctions)))
-            #Get the data entry corresponding to the ID of this row
-            d = next(data for data in dataEntries if (data.dataID == row[combineColumn]))
-            
-            #For each column which should be recorded to it, add the data contained in this row
-            for r in range(len(colFunctions)):
-                #Try to parse value as float
-                try:
-                    d.dataLists[r].append(float(row[colFunctions[r][0]]))
-                #If not possible, increment unparsed data counter and log unparsed data value and location
-                except:
-                    unparsed += 1
-                    unparsedData.append([row[colFunctions[r][0]], lineCount, r])
-        #Increment the line count
-        lineCount += 1
+try:
+    with open(inputName) as csvFile:
+        csvReader = csv.reader(csvFile, delimiter = ',')
+        
+        #Iterate through each row of the CSV file
+        for row in csvReader:
+            #Ignore first line as this corresponds to column titles, otherwise iterate through each row of data
+            if lineCount > 0:
+                #Check that a data entry does not already exist for data with the same ID as this row
+                if not any(data.dataID == row[combineColumn] for data in dataEntries):
+                    #Create a new data entry with an ID corresponding to this row
+                    dataEntries.append(DataEntry(row[combineColumn], len(colFunctions)))
+                #Get the data entry corresponding to the ID of this row
+                d = next(data for data in dataEntries if (data.dataID == row[combineColumn]))
+                
+                #For each column which should be recorded to it, add the data contained in this row
+                for r in range(len(colFunctions)):
+                    #Try to parse value as float
+                    try:
+                        d.dataLists[r].append(float(row[colFunctions[r][0]]))
+                    #If not possible, increment unparsed data counter and log unparsed data value and location
+                    except:
+                        unparsed += 1
+                        unparsedData.append([row[colFunctions[r][0]], lineCount, r])
+            #Increment the line count
+            lineCount += 1
+except:
+    print('The input file could not be loaded and the program will be terminated. Please check you have correctly entered the filename.')
+    logtext = 'The input file could not be loaded and the program was terminated.'
+    createLog()
+    quit()
 
 #Create a list to contain data that should be written to the output CSV
 dataToWrite = []
@@ -150,17 +163,33 @@ for d in dataEntries:
     dataToWrite.append(dataToStore)
     
 #Create an output CSV and write the data to it
-with open(outputName, 'w+', newline='') as csvFile:
-    csvWriter = csv.writer(csvFile, delimiter = ',')
-    for d in dataToWrite:
-        csvWriter.writerow(d)
+try:
+    with open(outputName, 'w+', newline='') as csvFile:
+        csvWriter = csv.writer(csvFile, delimiter = ',')
+        for d in dataToWrite:
+            csvWriter.writerow(d)
+except:
+    pass
+try:
+    with open('output.csv', 'w+', newline='') as csvFile:
+        csvWriter = csv.writer(csvFile, delimiter = ',')
+        for d in dataToWrite:
+            csvWriter.writerow(d)
+        outputName = 'output.csv'
+        print('The selected output filename is not valid. The file will be saved with the default name.')
+        logtext += 'The selected output filename was not valid. The file was saved with the default name.\n'
+except:
+    print('The output file could not be created, the program will be terminated. This could be due to a file already existing with the selected output filename, particularly if such a file was in use at the time of running this script.')
+    logtext = 'The output file could not be created and the program was terminated. This could be due to a file already existing with the selected output filename, particularly if such a file was in use at the time of running the script.' 
+    createLog()
+    quit()
 
 #Calculate duration of main body
 endTime = time.time() - startTime
 
 #Provide information regarding output file location
 print('Output CSV file saved to ' + os.getcwd() + '\\' + outputName + '.')
-logtext = 'Output CSV file saved to ' + os.getcwd() + '\\' + outputName + '.'
+logtext += 'Output CSV file saved to ' + os.getcwd() + '\\' + outputName + '.'
 
 #Provide information on how the CSV was reduced and the duration of the reduction process
 print('CSV reduced from ' + str(lineCount) + ' entries to ' + str(len(dataEntries)) + ' entries in ' + str(endTime) + ' seconds.')
@@ -182,8 +211,5 @@ if(unparsed > 0):
 #If no unparsed entries exist, log this information 
 else:
     logtext += '\n\nAll entries in selected columns were parsed successfully.'
-
-#Write logs to a .txt file
-textFile = open('log.txt', 'w')
-textFile.write(logtext)
-textFile.close()
+    
+createLog()
