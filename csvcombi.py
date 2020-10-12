@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>
 """
 import csv
 import statistics as stats
+import os
+import time
 """
 Takes comma-separated variable files and combines entries in the files according to user-selected parameters.
 """
@@ -27,7 +29,12 @@ inputName = 'input.csv'
 combineColumn = 0
 #Column functions should be placed in this list
 colFunctions = [
+    [1, 'MEAN'],
+    [2, 'MEAN'],
+    [3, 'MEAB']
     ]
+#This corresponds to the filename of the output CSV file
+outputName = 'output.csv'
 
 class DataEntry:
     """
@@ -44,14 +51,49 @@ class DataEntry:
         #For each column which is to be kept in the reduced CSV, instantiate a blank list
         for i in range(functions):
             self.dataLists.append([])
+            
+def getCFString(cf):
+    """
+    Returns a string describing the calculation performed on values in a column.
+    """
+    if(cf[1] == 'MAX'):
+        return('Maximum value selected for column ' + str(cf[0]) + '.')
+    elif(cf[1] == 'MEAN'):
+        return('Average value calculated for column ' + str(cf[0]) + '.')
+    elif(cf[1] == 'MEDIAN'):
+        return('Median value calculated for column ' + str(cf[0]) + '.')
+    elif(cf[1] == 'MIN'):
+        return('Minimum value selected for column ' + str(cf[0]) + '.')
+    elif(cf[1] == 'MODE'):
+        return('Most common value calculated for column ' + str(cf[0]) + '.')
+    elif(cf[1] == 'STDEV'):
+        return('Standard deviation calculated for column ' + str(cf[0]) + '.')
+    elif(cf[1] == 'SUM'):
+        return('Sum of values calculated for column ' + str(cf[0]) + '.')
+    elif(cf[1] == 'VAR'):
+        return('Variance calculated for column ' + str(cf[0]) + '.')
+    #If the function type was not valid, return this specific message.
+    else:
+        return('Average value calculated for column ' + str(cf[0]) + '. This calculation was performed as a fallback due to an incorrect entry in the column functions list.')
 
 #Create a list for new data entries
 dataEntries = []
+#Create a counter for entries which could not be parsed
+unparsed = 0
+unparsedData = []
+
+#Track number of lines, also used for iterating over lines
+lineCount = 0
+
+#Track whether an incorrect function was entered
+badFunctionWarning = False
+
+#Record start time of main body
+startTime = time.time()
 
 #Open the input CSV file
 with open(inputName) as csvFile:
     csvReader = csv.reader(csvFile, delimiter = ',')
-    lineCount = 0
     
     #Iterate through each row of the CSV file
     for row in csvReader:
@@ -66,7 +108,13 @@ with open(inputName) as csvFile:
             
             #For each column which should be recorded to it, add the data contained in this row
             for r in range(len(colFunctions)):
-                d.dataLists[r].append(float(row[colFunctions[r][0]]))
+                #Try to parse value as float
+                try:
+                    d.dataLists[r].append(float(row[colFunctions[r][0]]))
+                #If not possible, increment unparsed data counter and log unparsed data value and location
+                except:
+                    unparsed += 1
+                    unparsedData.append([row[colFunctions[r][0]], lineCount, r])
         #Increment the line count
         lineCount += 1
 
@@ -95,12 +143,47 @@ for d in dataEntries:
             dataToStore.append(sum(d.dataList[dList]))
         elif colFunctions[dList][1] == 'VAR':
             dataToStore.append(stats.variance(d.dataList[dList]))
+        else:
+            dataToStore.append(stats.mean(d.dataLists[dList]))
+            badFunctionWarning = True
     #Add this condensed data entry to the list of data to write
     dataToWrite.append(dataToStore)
     
 #Create an output CSV and write the data to it
-with open('output.csv', 'w+', newline='') as csvFile:
+with open(outputName, 'w+', newline='') as csvFile:
     csvWriter = csv.writer(csvFile, delimiter = ',')
     for d in dataToWrite:
         csvWriter.writerow(d)
-    
+
+#Calculate duration of main body
+endTime = time.time() - startTime
+
+#Provide information regarding output file location
+print('Output CSV file saved to ' + os.getcwd() + '\\' + outputName + '.')
+logtext = 'Output CSV file saved to ' + os.getcwd() + '\\' + outputName + '.'
+
+#Provide information on how the CSV was reduced and the duration of the reduction process
+print('CSV reduced from ' + str(lineCount) + ' entries to ' + str(len(dataEntries)) + ' entries in ' + str(endTime) + ' seconds.')
+logtext += '\n\nCSV reduced from ' + str(lineCount) + ' entries to ' + str(len(dataEntries)) + ' entries in ' + str(endTime) + ' seconds.\nThe data was reduced using the following methods:'
+for cf in colFunctions:
+    logtext += '\n' + getCFString(cf)
+
+#Display a warning if an incorrect column function was entered
+if(badFunctionWarning == True):
+    print('\nAn incorrect column function was passed to the script. The mean function was applied as a fallback, however this may not have been your intention. Your data may be incorrect as a result. Please check your column function syntax for any mistakes.')    
+    logtext += '\n\nAn incorrect column function was passed to the script. The mean function was applied as a fallback, however this may not have been your intention. Your data may be incorrect as a result. Please check your column function syntax for any mistakes.'
+
+#Display information about any unparsed entries
+if(unparsed > 0):
+    print(str(unparsed) + ' data entries could not be parsed and have not been accounted for. More data is available in the log file.')
+    logtext += '\n\n' + str(unparsed) + ' data entries could not be parsed and have not been accounted for.\nA list of unparsed data entries is as follows:'
+    for entry in unparsedData:
+        logtext += '\nEntry \'' + str(entry[0]) + '\' in row ' + str(entry[1]) + ', column ' + str(entry[2]) + '.'
+#If no unparsed entries exist, log this information 
+else:
+    logtext += '\n\nAll entries in selected columns were parsed successfully.'
+
+#Write logs to a .txt file
+textFile = open('log.txt', 'w')
+textFile.write(logtext)
+textFile.close()
