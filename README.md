@@ -32,3 +32,6 @@ colFunctions = [
 - STDEV - Stores the standard deviation
 - SUM - Stores the sum
 - VAR - Stores the variance
+
+### Running the csvcombi.py file
+One you have altered the variables as appropriate, open an instance of Command Prompt with the working directory set to the directory of the csvcombi.py file. This can be easily done by navigating to the correct directory in File Explorer, typing 'cmd' in the address bar, and pressing the Enter key. Assuming your Python installation was installed correctly and the PATH variable is correct, you should now be able to run csvcombi.py by entering the command 'python csvcombi.py' into the Command Prompt. Information on the output CSV file will be displayed in Command Prompt, however the output CSV file should always be created in the same directory as the csvcombi.py file. The default output file name is 'output.csv', however this can be changed by the user in the csvcombi.py file. A log file will be created ('log.txt', saved in the same directory as csvcombi.py) containing useful information about the execution of the csvcombi.py script.
